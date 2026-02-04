@@ -15,8 +15,8 @@ const Navbar = () => {
                 <div className='flex gap-6 items-center'>
                     <Link to="/" className='hover:text-primary transition'>Home</Link>
                     <Link to="/course" className='hover:text-primary transition'>Courses</Link>
-                    <Link to="/login" className='px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition'>Login</Link>
-                    <Link to="/Register" className='px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transistion'>Get Started</Link>
+                    <Link to="/login" className='px-4 py-2 border border-primary text-primary rounded-lg hover:bg-black hover:text-white transition'>Login</Link>
+                    <Link to="/Register" className='px-4 py-2 bg-primary text-primary rounded-lg hover:bg-black transistion hover:text-white transition'>Get Started</Link>
                     
                 </div>
             </div>
