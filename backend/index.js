@@ -24,6 +24,8 @@ const connectDB = async () => {
 
 connectDB();
 
+app.use('/api/auth', require('./routes/authRoutes'))
+
 app.get('/', (req, res) => {
     res.send('API is running...');
 })
