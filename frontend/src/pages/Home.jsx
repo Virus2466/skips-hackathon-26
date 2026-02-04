@@ -11,7 +11,7 @@ const Home = () => {
                     The best platform to learn, teach, grow. Join our hackathon project to experience the future of education.
                 </p>
                 <div className='flex gap-4'>
-                    <Link to="/courses" className='px-8 py-3 bg-primary text-black text-lg rounded-xl shadow-lg hover:bg-black transition hover:text-white transition'> 
+                    <Link to="/course" className='px-8 py-3 bg-primary text-black text-lg rounded-xl shadow-lg hover:bg-black transition hover:text-white transition'> 
                         Browse Courses
                     </Link>
                     <Link to="/register" className='px-8 py-3 bg-white text-primary border-2 border-primary text-lg rounded-xl hover:bg-gray-50 transition'>
