@@ -8,7 +8,7 @@ const generateToken = require("../utils/generate-token.js");
 // @route POST /auth/register
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, course  } = req.body;
+    const { name, email, password, role, course, parentPhone  } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
@@ -47,6 +47,8 @@ exports.registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         course: user.course || null,
+        parentPhone: user.parentPhone || null,
+        phone: user.phone || null,
         token: generateToken(user),
       });
     }

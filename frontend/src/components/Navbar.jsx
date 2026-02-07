@@ -27,7 +27,7 @@ const Navbar = () => {
             </Link>
           )}
 
-          {/* Conditional Rendering: Logged In vs Logged Out */}
+         
           {user ? (
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">
               <div className="flex items-center gap-2 text-dark font-medium">
@@ -47,10 +47,10 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="flex gap-4">
-              <Link to="/login" className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition font-medium">
+              <Link to="/login" className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-black hover:text-white transition font-medium">
                 Login
               </Link>
-              <Link to="/register" className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition font-medium shadow-md">
+              <Link to="/register" className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-black hover:text-white transition font-medium shadow-md">
                 Get Started
               </Link>
             </div>

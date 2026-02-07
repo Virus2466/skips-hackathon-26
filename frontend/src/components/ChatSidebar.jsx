@@ -52,7 +52,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
       <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in">
         
         {/* Header */}
-        <div className="p-4 bg-primary text-white flex justify-between items-center shadow-md">
+        <div className="p-4 bg-primary text-black flex justify-between items-center shadow-md">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-white/20 rounded-lg">
                <Bot size={20} className="text-white" />
@@ -75,7 +75,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${
                 msg.sender === 'user' 
-                  ? 'bg-primary text-white rounded-tr-none' 
+                  ? 'bg-primary text-black rounded-tr-none' 
                   : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
               }`}>
                 {msg.text}
@@ -119,7 +119,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
           />
           <button 
             type="submit" 
-            className="p-3 bg-primary text-white rounded-xl hover:bg-indigo-700 transition shadow-lg disabled:opacity-50"
+            className="p-3 bg-primary text-black rounded-xl hover:bg-black hover:text-white transition shadow-lg disabled:opacity-50"
             disabled={!input.trim()}
           >
             <Send size={18} />
