@@ -1,47 +1,49 @@
-const MockTest = require("../models/Test");
+const Test = require("../models/Test.js");
+const User = require("../models/User.js");
 
-// GET /api/dashboard/tests - get all previous mock tests
-// GET /api/dashboard/tests
+const mongoose = require("mongoose"); // ← Add this if missing
+// GET /api/dashboard/tests - get full dashboard data for the user
+// Returns: { user, tests, stats }
 exports.getUserMockTests = async (req, res) => {
   try {
     const userId = req.user.id;
     const { status, subject } = req.query;
 
-    // Build filter quickly
+    // Build filter for tests
     const filter = { user: userId };
     if (status) filter.status = status;
     if (subject) filter.subject = subject;
 
-    const tests = await MockTest.find(filter).sort({ takenAt: -1 }).lean();
+    const tests = await Test.find(filter).sort({ takenAt: -1 }).lean();
 
-    if (tests.length === 0) {
-      return res.json({
-        tests: [],
-        stats: {
-          totalTests: 0,
-          averagePercent: 0, 
-          bestPercent: 0,
-          lastTakenAt: null,
-        },
-      });
+    // Fetch basic user profile to show on dashboard
+    const user = await User.findById(userId)
+      .select("name email role phone parentPhone course createdAt")
+      .lean();
+
+    // Prepare default stats
+    if (!tests || tests.length === 0) {
+      const stats = {
+        totalTests: 0,
+        averagePercent: 0,
+        bestPercent: 0,
+        lastTakenAt: null,
+      };
+      return res.json({ user, tests: [], stats });
     }
 
     // Fast Stats
     const totalTests = tests.length;
-    const percentages = tests.map((t) =>
-      t.total ? (t.score / t.total) * 100 : 0,
-    );
+    const percentages = tests.map((t) => (t.total ? (t.score / t.total) * 100 : 0));
 
     const stats = {
       totalTests,
-      averagePercent: Math.round(
-        percentages.reduce((a, b) => a + b, 0) / totalTests,
-      ),
-      bestPercent: Math.round(Math.max(...percentages)), // Safe now because of the length check above
+      averagePercent: Math.round(percentages.reduce((a, b) => a + b, 0) / totalTests),
+      bestPercent: Math.round(Math.max(...percentages)),
       lastTakenAt: tests[0].takenAt,
     };
 
-    return res.json({ tests, stats });
+    return res.json({ user, tests, stats });
   } catch (error) {
     return res.status(500).json({ message: "Server Error" });
   }
@@ -51,10 +53,10 @@ exports.getUserMockTests = async (req, res) => {
 exports.getSingleMockTest = async (req, res) => {
   try {
     // One-liner: Find by ID AND User to ensure they don't see other people's data
-    const test = await MockTest.findOne({
-      _id: req.params.testId,
+    const test = await Test.findOne({
+      _id: new mongoose.Types.ObjectId(req.params.testId), // Convert to ObjectId
       user: req.user.id,
-    }).lean();
+    });
 
     if (!test) return res.status(404).json({ message: "Test not found" });
 
@@ -81,9 +83,9 @@ exports.createMockTest = async (req, res) => {
     }
 
     // Create new mock test
-    const newTest = await MockTest.create({
+    const newTest = await Test.create({
       user: userId,
-      title, 
+      title,
       subject: subject || "General",
       score: Math.min(score, total), // Ensure score doesn't exceed total
       total,
