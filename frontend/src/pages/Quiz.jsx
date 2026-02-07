@@ -18,6 +18,7 @@ const Quiz = () => {
   const [error, setError] = useState('');
 
   // --- 1. THE FIXED API CALL ---
+ // --- 1. THE FIXED START QUIZ ---
   const startQuiz = async () => {
     if (!config.topic) return alert("Please enter a topic!");
     setLoading(true);
@@ -25,31 +26,47 @@ const Quiz = () => {
 
     try {
       const userinfo = JSON.parse(localStorage.getItem("userInfo"));
-      
-      // Debug: Check if user is logged in
-      if (!userinfo || !userinfo.token) {
-        setError("You must be logged in to take a quiz!");
-        setLoading(false);
-        return;
-      }
 
-      console.log("✅ User Info Found:", userinfo);
-      console.log("✅ Token:", userinfo.token);
-
-      // ✅ Using 'api.post' automatically adds the Token & Base URL
       const { data } = await api.post("/api/ai/ask", {
         mode: 'generate_question',
-        topic: config.topic,            // <--- Sending 'topic' as you requested
-        difficulty: config.difficulty,  // <--- Sending 'difficulty'
-        studentId: userinfo?._id        // <--- Sending 'studentId'
+        topic: config.topic,
+        difficulty: config.difficulty,
+        studentId: userinfo?._id
       });
 
-      console.log("AI Response:", data);
+      console.log("Raw AI Data:", data); // 🔍 Debug Log
 
       if (data.success && Array.isArray(data.questions)) {
-        setQuestions(data.questions);
         
-        // Reset Game State
+        // --- DATA SANITIZATION (The Fix) ---
+        const cleanQuestions = data.questions.map(q => {
+          let correctIndex = -1;
+
+          // Case A: AI gave us an Index (0, 1, 2, 3)
+          if (q.correct !== undefined && !isNaN(q.correct)) {
+            correctIndex = Number(q.correct);
+          }
+          // Case B: AI gave us the Text Answer (e.g., "Newton")
+          else if (q.correct_answer || q.answer || (typeof q.correct === 'string')) {
+            const correctText = q.correct_answer || q.answer || q.correct;
+            // Find which option matches this text
+            correctIndex = q.options.findIndex(opt => 
+              opt.toLowerCase().trim() === correctText.toLowerCase().trim()
+            );
+          }
+
+          // Fallback: If AI failed completely, mark the first option as correct (prevents crash)
+          if (correctIndex === -1) correctIndex = 0;
+
+          return {
+            ...q,
+            correct: correctIndex // Now it is always a Number!
+          };
+        });
+
+        setQuestions(cleanQuestions);
+        
+        // Reset Game
         setScore(0);
         setCurrentQuestionIndex(0);
         setUserAnswers([]);
@@ -61,7 +78,7 @@ const Quiz = () => {
 
     } catch (err) {
       console.error("Quiz Error:", err);
-      setError(err.response?.data?.message || "Failed to generate quiz. Please try again.");
+      setError("Failed to generate quiz. AI might be busy.");
     } finally {
       setLoading(false);
     }
