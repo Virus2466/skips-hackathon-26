@@ -4,7 +4,8 @@ const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
-const runOllamaChat = require("./utils/data-fetch");
+const AIController = require("./controllers/ollama.controller");
+// const runOllamaChat = require("./utils/data-fetch");
 require("dotenv").config();
 
 const app = express();
@@ -17,6 +18,21 @@ app.use(express.json());
 // 2. Routes
 app.use("/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes, authMiddleware); // Protect dashboard routes with authMiddleware
+app.post("/api/ai/ask", authMiddleware, AIController.handleRequest);
+
+// Endpoint for saving test results
+app.post("/api/tests/submit", authMiddleware, async (req, res) => {
+  try {
+    const Test = require("./models/Test");
+    // Ensure the studentId comes from the authenticated user for security
+    const testData = { ...req.body, studentId: req.user.id };
+    const newTest = new Test(testData);
+    await newTest.save();
+    res.status(201).json({ success: true, message: "Test saved!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Mongo connection
 const connectDB = async () => {
   try {
