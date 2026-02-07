@@ -90,7 +90,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
                 msg.sender === 'user' 
-                  ? 'bg-primary text-white rounded-tr-none' 
+                  ? 'bg-primary text-black rounded-tr-none' 
                   : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
               }`}>
                 {/* 2. Use ReactMarkdown to render the text */}

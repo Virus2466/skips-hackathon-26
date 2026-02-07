@@ -20,15 +20,12 @@ api.interceptors.request.use(
         // Check if token exists before attaching
         if (parsedUser && parsedUser.token) {
           config.headers.Authorization = `Bearer ${parsedUser.token}`;
-          console.log("✅ Token attached to request:", config.url);
-        } else {
-          console.warn("⚠️ No token found in userInfo for URL:", config.url);
+
+          console.log("✅ Interceptor Working! Attaching Token:", parsedUser.token);
         }
       } catch (error) {
         console.error("Error parsing user info:", error);
       }
-    } else {
-      console.warn("⚠️ No userInfo in localStorage for URL:", config.url);
     }
     return config;
   },
