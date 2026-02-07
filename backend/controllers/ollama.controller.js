@@ -162,7 +162,7 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
     `;
 
     const response = await ollama.chat({
-      model: "glm-4.7-flash",
+      model: "gpt-oss:120b",
       messages: [{ role: "user", content: analysisPrompt }],
       format: "json", // Force JSON format
     });
@@ -187,7 +187,7 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
     }).sort({ createdAt: -1 });
 
     const response = await ollama.chat({
-      model: "glm-4.7-flash",
+      model: "gpt-oss:120b",
       messages: [
         {
           role: "system",

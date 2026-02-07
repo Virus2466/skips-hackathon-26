@@ -37,10 +37,12 @@ app.post("/api/tests/submit", authMiddleware, async (req, res) => {
     const newTest = new Test(testData);
     await newTest.save();
 
-    res.status(201).json({
-      success: true,
-      message: "Test results recorded for AI analysis!",
-    });
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: "Test results recorded for AI analysis!",
+      });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
