@@ -3,15 +3,13 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard'; // <--- Import this
-import AuthContext from './context/AuthContext'; // To check if logged in
+import Dashboard from './pages/Dashboard'; 
+import AuthContext from './context/AuthContext';
 import { useContext } from 'react';
 import Quiz from './pages/Quiz';
+import PrivateRoute from './components/PrivateRoute';
 
-const PrivateRoute = ({ children }) => {
-  const { user } = useContext(AuthContext);
-  return user ? children : <Login />; // If not logged in, go to Login
-};
+
 
 function App() {
   return (

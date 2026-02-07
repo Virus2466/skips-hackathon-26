@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 
 require("dotenv").config();
 
@@ -15,7 +16,7 @@ app.use(express.json()); // allows us to parse JSON bodies
 
 // Routes
 app.use("/auth", authRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard", dashboardRoutes, authMiddleware); // Protect dashboard routes with authMiddleware
 // Mongo connection
 const connectDB = async () => {
   try {

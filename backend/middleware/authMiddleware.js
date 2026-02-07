@@ -12,6 +12,7 @@ function authMiddleware(req, res, next) {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1]; // "Bearer <token>"
+    
 
     if (!token) { 
       return res
