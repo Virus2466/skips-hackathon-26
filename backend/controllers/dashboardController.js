@@ -1,4 +1,4 @@
-const MockTest = require("../models/MockTest");
+const MockTest = require("../models/Test");
 
 // GET /api/dashboard/tests - get all previous mock tests
 // GET /api/dashboard/tests
