@@ -30,6 +30,7 @@ exports.registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       role: role || "student",
+      course: role || null
     };
 
     // Add course for students
@@ -46,7 +47,7 @@ exports.registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         course: user.course || null,
-        token: generateToken.refreshTokenGenerator(user),
+        token: generateToken(user),
       });
     }
   } catch (error) {

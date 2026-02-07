@@ -1,4 +1,3 @@
-// frontend/src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  // 1. Check if user is logged in (Load from Storage)
   useEffect(() => {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
@@ -15,46 +15,61 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // --- UPDATED LOGIN FUNCTION (Frontend Mode) ---
+  // 2. REAL LOGIN FUNCTION
   const login = async (email, password) => {
-    // TEMPORARY: Simulate a successful login without Backend
-    console.log("Frontend Mode: Logging in as", email);
-    
-    const mockUser = {
-      _id: "dummy_id_123",
-      name: "Student (Demo)",
-      email: email,
-      role: "student",
-      token: "demo_token_xyz"
-    };
-
-    localStorage.setItem('userInfo', JSON.stringify(mockUser));
-    setUser(mockUser);
-    navigate('/dashboard'); // Go straight to dashboard
-    return { success: true };
-    
-    /* // REAL BACKEND CODE (Keep commented out for now)
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', { ... });
-      // ... original logic ...
-    } catch (error) { ... } 
-    */
+      // Note: Your backend index.js uses "/auth", not "/api/auth"
+      const res = await fetch('http://localhost:5001/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        setUser(data);
+        navigate('/dashboard'); 
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || "Login failed" };
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      return { success: false, message: "Server connection failed." };
+    }
+  };
+
+  // 3. REAL REGISTER FUNCTION
+  const register = async (name, email, password, role, course) => {
+    try {
+      const res = await fetch('http://localhost:5001/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role, course }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        setUser(data);
+        navigate('/dashboard');
+        return { success: true };
+      } else {
+        return { success: false, message: data.message || "Registration failed" };
+      }
+    } catch (error) {
+      console.error("Register Error:", error);
+      return { success: false, message: "Server connection failed." };
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('userInfo');
     setUser(null);
     navigate('/login');
-  };
-
-  // Keep register same or mock it similarly if needed
-  const register = async (name, email, password, role, course) => {
-     // Mock Register
-     const mockUser = { name, email, role, course, password, token: "demo_token" };
-     localStorage.setItem('userInfo', JSON.stringify(mockUser));
-     setUser(mockUser);
-     navigate('/dashboard');
-     return { success: true };
   };
 
   return (
