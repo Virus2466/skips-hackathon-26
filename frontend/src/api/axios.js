@@ -2,22 +2,29 @@ import axios from 'axios';
 
 // 1. Create the Axios Instance
 const api = axios.create({
-  baseURL: 'http://localhost:5001', // Backend URL
+  baseURL: 'http://localhost:5001', // <--- Set to 5001 as requested
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // 2. Request Interceptor (The "Middleman")
-// Before sending ANY request, check if we have a token and attach it.
 api.interceptors.request.use(
   (config) => {
     const userInfo = localStorage.getItem('userInfo');
     
     if (userInfo) {
-      const { token } = JSON.parse(userInfo);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      try {
+        const parsedUser = JSON.parse(userInfo);
+        
+        // Check if token exists before attaching
+        if (parsedUser && parsedUser.token) {
+          config.headers.Authorization = `Bearer ${parsedUser.token}`;
+
+          console.log("✅ Interceptor Working! Attaching Token:", parsedUser.token);
+        }
+      } catch (error) {
+        console.error("Error parsing user info:", error);
       }
     }
     return config;

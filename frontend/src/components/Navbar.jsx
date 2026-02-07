@@ -27,6 +27,16 @@ const Navbar = () => {
             </Link>
           )}
 
+          <Link 
+            to="/history" 
+  className={`px-4 py-2 rounded-xl transition font-medium ${
+    location.pathname === '/history' 
+      ? 'bg-primary text-white' 
+      : 'text-gray-600 hover:bg-gray-100'
+  }`}
+>
+  Test History
+</Link>
          
           {user ? (
             <div className="flex items-center gap-4 ml-4 pl-4 border-l border-gray-200">

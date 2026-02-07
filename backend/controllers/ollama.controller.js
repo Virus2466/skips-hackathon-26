@@ -180,19 +180,33 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
   },
 
   // Logic for Scenario 3: Chat
+  // Logic for Scenario 3: Chat
   async handleContextualChat(req, res, student, message, course) {
     const lastTest = await Test.findOne({
       studentId: student._id,
       subject: course,
     }).sort({ createdAt: -1 });
 
+    const systemPrompt = `
+      You are an expert AI Tutor for ${student.name}. 
+      Context:
+      - Course: ${course}
+      - Last Test Score: ${lastTest?.score || "N/A"}
+      
+      INSTRUCTIONS:
+      1. Answer the student's question clearly and concisely.
+      2. USE MARKDOWN FORMATTING:
+         - Use **Bold** for key terms.
+         - Use Bullet points for steps or lists.
+         - Use ### Headings for sections.
+         - Use Tables if comparing things.
+      3. Be encouraging but educational.
+    `;
+
     const response = await ollama.chat({
-      model: "glm-4.7-flash",
+      model: "gpt-oss:120b", // Or "llama3" depending on your setup
       messages: [
-        {
-          role: "system",
-          content: `You are a tutor for ${student.name}. Last score in ${course}: ${lastTest?.score || "N/A"}.`,
-        },
+        { role: "system", content: systemPrompt },
         { role: "user", content: message },
       ],
     });

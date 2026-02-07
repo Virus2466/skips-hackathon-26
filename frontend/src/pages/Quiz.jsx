@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { studentProfile, weakAreas, recommendations, dummyQuestions } from '../data/mockdata.js';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle, Play, ArrowRight } from 'lucide-react';
+import { CheckCircle, XCircle, Play, ArrowRight, Loader2 } from 'lucide-react';
+import api from '../api/axios'; // Import API
 
 const Quiz = () => {
   const navigate = useNavigate();
@@ -12,19 +12,52 @@ const Quiz = () => {
   // Setup State
   const [config, setConfig] = useState({ topic: '', difficulty: 'Medium' });
   
-  // Quiz State
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  // Quiz Data State
+  const [questions, setQuestions] = useState([]); // Stores fetched questions
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
-  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const TOTAL_QUESTIONS = 5; // Fixed length for now
 
   // --- HANDLERS ---
 
-  const startQuiz = () => {
+  // Helper to fetch a single question
+  const fetchQuestion = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.post('/api/ai/ask', {
+        mode: 'generate_question',
+        selectedCourse: config.topic,
+        difficulty: config.difficulty
+      });
+      
+      if (data.success && data.question) {
+        setQuestions(prev => [...prev, data.question]);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Quiz Fetch Error:", err);
+      setError("Failed to generate question. Please try again.");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startQuiz = async () => {
     if (!config.topic) return alert("Please enter a topic!");
-    setGameState('active');
-    setCurrentQuestion(0);
+    setError('');
+    setQuestions([]); // Reset questions
     setScore(0);
+    setCurrentQuestionIndex(0);
+    
+    // Fetch the first question
+    await fetchQuestion();
+    setGameState('active');
   };
 
   const handleOptionClick = (index) => {
@@ -32,17 +65,40 @@ const Quiz = () => {
     setSelectedOption(index);
     
     // Check if correct
-    if (index === dummyQuestions[currentQuestion].correct) {
+    const currentQ = questions[currentQuestionIndex];
+    if (index === currentQ.correct) {
       setScore(score + 1);
     }
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     setSelectedOption(null);
-    if (currentQuestion + 1 < dummyQuestions.length) {
-      setCurrentQuestion(currentQuestion + 1);
+    
+    if (currentQuestionIndex + 1 < TOTAL_QUESTIONS) {
+      // Move index forward
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      
+      // If we don't have the next question yet, fetch it
+      if (currentQuestionIndex + 1 >= questions.length) {
+        await fetchQuestion();
+      }
     } else {
-      setGameState('result');
+      finishQuiz();
+    }
+  };
+  
+  const finishQuiz = async () => {
+    setGameState('result');
+    // Optional: Save score to backend here using /api/tests/submit
+    try {
+        await api.post('/api/tests/submit', {
+            title: `${config.topic} AI Test`,
+            subject: config.topic,
+            score: score, // Note: Score might need +1 if last answer was correct
+            total: TOTAL_QUESTIONS
+        });
+    } catch (e) {
+        console.error("Failed to save score", e);
     }
   };
 
@@ -52,16 +108,16 @@ const Quiz = () => {
   if (gameState === 'setup') {
     return (
       <div className="min-h-[80vh] flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-          <h2 className="text-2xl font-bold text-dark mb-6 text-center">Configure Mock Test</h2>
+        <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md animate-fade-in">
+          <h2 className="text-2xl font-bold text-dark mb-6 text-center">AI Mock Test</h2>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Topic / Subject</label>
               <input 
                 type="text" 
-                placeholder="e.g. Calculus, Physics..."
-                className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none"
+                placeholder="e.g. Thermodynamics, Calculus, History"
+                className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
                 value={config.topic}
                 onChange={(e) => setConfig({...config, topic: e.target.value})}
               />
@@ -74,10 +130,10 @@ const Quiz = () => {
                   <button
                     key={level}
                     onClick={() => setConfig({...config, difficulty: level})}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium border ${
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition ${
                       config.difficulty === level 
-                        ? 'bg-primary text-black border-primary' 
-                        : 'bg-white text-gray-400 border-gray-200 hover:bg-black hover:text-white transition'
+                        ? 'bg-primary text-white border-primary' 
+                        : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
                     }`}
                   >
                     {level}
@@ -86,11 +142,15 @@ const Quiz = () => {
               </div>
             </div>
 
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
             <button 
               onClick={startQuiz}
-              className="w-full bg-white text-black py-3 rounded-xl font-bold text-lg hover:bg-black transition hover:text-white flex items-center justify-center gap-2 mt-4"
+              disabled={loading}
+              className="w-full bg-black text-white py-3 rounded-xl font-bold text-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 mt-4 disabled:opacity-50"
             >
-              <Play size={20} /> Start Quiz
+              {loading ? <Loader2 className="animate-spin" /> : <Play size={20} />} 
+              {loading ? "Generating..." : "Start AI Quiz"}
             </button>
           </div>
         </div>
@@ -100,26 +160,26 @@ const Quiz = () => {
 
   // 2. Result Screen
   if (gameState === 'result') {
-    const percentage = (score / dummyQuestions.length) * 100;
+    const percentage = Math.round((score / TOTAL_QUESTIONS) * 100);
     return (
       <div className="min-h-[80vh] flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center animate-slide-in">
           <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={40} className="text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-dark">Quiz Completed!</h2>
+          <h2 className="text-2xl font-bold text-dark">Test Completed!</h2>
           <p className="text-gray-500 mt-1">Topic: {config.topic}</p>
           
           <div className="my-6">
             <p className="text-5xl font-extrabold text-primary">{percentage}%</p>
-            <p className="text-sm text-gray-400 mt-2">You got {score} out of {dummyQuestions.length} correct</p>
+            <p className="text-sm text-gray-400 mt-2">You got {score} out of {TOTAL_QUESTIONS} correct</p>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => navigate('/dashboard')} className="flex-1 py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+            <button onClick={() => navigate('/dashboard')} className="flex-1 py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition">
               Dashboard
             </button>
-            <button onClick={() => setGameState('setup')} className="flex-1 py-3 bg-primary text-white rounded-xl hover:bg-indigo-700">
+            <button onClick={() => setGameState('setup')} className="flex-1 py-3 bg-primary text-white rounded-xl hover:bg-indigo-700 transition">
               New Test
             </button>
           </div>
@@ -129,21 +189,34 @@ const Quiz = () => {
   }
 
   // 3. Active Quiz Screen
-  const question = dummyQuestions[currentQuestion];
+  // If loading and we don't have the current question yet
+  if (loading && !questions[currentQuestionIndex]) {
+    return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center">
+            <Loader2 size={40} className="text-primary animate-spin mb-4" />
+            <h3 className="text-xl font-bold text-gray-700">AI is crafting your question...</h3>
+            <p className="text-gray-500 text-sm">Analyzing difficulty: {config.difficulty}</p>
+        </div>
+    );
+  }
+
+  const question = questions[currentQuestionIndex];
   
+  if (!question) return <div>Something went wrong. <button onClick={() => setGameState('setup')}>Restart</button></div>;
+
   return (
-    <div className="max-w-3xl mx-auto p-6 min-h-[80vh] flex flex-col justify-center">
+    <div className="max-w-3xl mx-auto p-6 min-h-[80vh] flex flex-col justify-center animate-fade-in">
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 h-2 rounded-full mb-8">
         <div 
           className="bg-primary h-2 rounded-full transition-all duration-300"
-          style={{ width: `${((currentQuestion + 1) / dummyQuestions.length) * 100}%` }}
+          style={{ width: `${((currentQuestionIndex + 1) / TOTAL_QUESTIONS) * 100}%` }}
         ></div>
       </div>
 
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex justify-between items-center mb-6">
-          <span className="text-sm font-bold text-indigo-500 tracking-wider uppercase">Question {currentQuestion + 1}</span>
+          <span className="text-sm font-bold text-indigo-500 tracking-wider uppercase">Question {currentQuestionIndex + 1}</span>
           <span className="text-xs text-gray-400">Diff: {config.difficulty}</span>
         </div>
 
@@ -180,10 +253,11 @@ const Quiz = () => {
         <div className="mt-8 flex justify-end">
           <button 
             onClick={nextQuestion}
-            disabled={selectedOption === null}
+            disabled={selectedOption === null || loading}
             className="bg-dark text-white px-8 py-3 rounded-xl font-bold hover:bg-black transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {currentQuestion + 1 === dummyQuestions.length ? 'Finish' : 'Next'} <ArrowRight size={20} />
+             {loading ? <Loader2 className="animate-spin"/> : (currentQuestionIndex + 1 === TOTAL_QUESTIONS ? 'Finish' : 'Next')} 
+             {!loading && <ArrowRight size={20} />}
           </button>
         </div>
       </div>
