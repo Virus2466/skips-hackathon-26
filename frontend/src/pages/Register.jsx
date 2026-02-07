@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { User, Mail, Lock, BookOpen, GraduationCap, Target } from 'lucide-react';
+import { User, Mail, Lock, BookOpen, GraduationCap, Target, Users, Phone } from 'lucide-react';
 
 const Register = () => {
   const { register } = useContext(AuthContext);
@@ -12,7 +12,9 @@ const Register = () => {
     email: '',
     password: '',
     role: 'student',
-    course: 'JEE Mains' // Default selection
+    course: 'JEE Mains',
+    parentPhone: '',
+    phone: '' // For Parent
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,13 +28,14 @@ const Register = () => {
     setError('');
     setLoading(true);
 
-    // Pass the 'course' to the register function
     const res = await register(
       formData.name, 
       formData.email, 
       formData.password, 
       formData.role,
-      formData.course // <--- Sending Course Info
+      formData.course,
+      formData.parentPhone,
+      formData.phone
     );
     
     if (res.success) {
@@ -49,7 +52,9 @@ const Register = () => {
         
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-dark">Create Account</h1>
-          <p className="text-gray-500 mt-2">Start your AI Learning Journey</p>
+          <p className="text-gray-500 mt-2">
+            Join as <span className="text-primary font-bold">{formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}</span>
+          </p>
         </div>
 
         {error && (
@@ -60,7 +65,7 @@ const Register = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Name */}
+          {/* --- COMMON FIELDS (Name, Email, Password) --- */}
           <div className="relative">
             <User className="absolute left-3 top-3.5 text-gray-400" size={20} />
             <input 
@@ -70,7 +75,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Email */}
           <div className="relative">
             <Mail className="absolute left-3 top-3.5 text-gray-400" size={20} />
             <input 
@@ -80,7 +84,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Password */}
           <div className="relative">
             <Lock className="absolute left-3 top-3.5 text-gray-400" size={20} />
             <input 
@@ -90,52 +93,81 @@ const Register = () => {
             />
           </div>
 
-          {/* --- NEW FIELD: Target Course --- */}
-          <div className="relative">
-            <Target className="absolute left-3 top-3.5 text-gray-400" size={20} />
-            <select
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition bg-white text-gray-700 appearance-none"
-            >
-              <option value="JEE Mains">JEE Mains (Engineering)</option>
-              <option value="NEET">NEET (Medical)</option>
-              <option value="UPSC">UPSC (Civil Services)</option>
-              <option value="CAT">CAT (MBA)</option>
-              <option value="Class 12 Boards">Class 12 Boards (Science)</option>
-              <option value="Class 10 Boards">Class 10 Boards</option>
-            </select>
-            {/* Custom Arrow Icon */}
-            <div className="absolute right-3 top-4 pointer-events-none text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          {/* --- STUDENT ONLY FIELDS --- */}
+          {formData.role === 'student' && (
+            <div className="space-y-4 animate-fade-in">
+              {/* Target Course */}
+              <div className="relative">
+                <Target className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                <select
+                  name="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition bg-white text-gray-700"
+                >
+                  <option value="JEE Mains">JEE Mains (Engineering)</option>
+                  <option value="NEET">NEET (Medical)</option>
+                  <option value="UPSC">UPSC (Civil Services)</option>
+                  <option value="CAT">CAT (MBA)</option>
+                  <option value="Class 12 Boards">Class 12 Boards (Science)</option>
+                  <option value="Class 10 Boards">Class 10 Boards</option>
+                </select>
+                {/* Dropdown Arrow */}
+                <div className="absolute right-3 top-4 pointer-events-none text-gray-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+
+              {/* Parent Phone (To link student to parent) */}
+              <div className="relative">
+                <Phone className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                <input 
+                  type="tel" name="parentPhone" placeholder="Parent's Phone Number"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition"
+                  value={formData.parentPhone} onChange={handleChange} required
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Role Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button" onClick={() => setFormData({ ...formData, role: 'student' })}
-              className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition ${
-                formData.role === 'student' ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              <GraduationCap size={24} /> <span className="text-sm">Student</span>
-            </button>
+          {/* --- PARENT ONLY FIELDS --- */}
+          {formData.role === 'parent' && (
+            <div className="relative animate-fade-in">
+              <Phone className="absolute left-3 top-3.5 text-gray-400" size={20} />
+              <input 
+                type="tel" name="phone" placeholder="Your Mobile Number" 
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition" 
+                value={formData.phone} onChange={handleChange} required 
+              />
+              <p className="text-xs text-gray-400 mt-1 ml-2">Use the number your child entered during signup.</p>
+            </div>
+          )}
+          
+          {/* --- TEACHER FIELDS (NONE EXTRA) --- */}
+          {/* Removed Subject field as requested */}
 
-            <button
-              type="button" onClick={() => setFormData({ ...formData, role: 'instructor' })}
-              className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition ${
-                formData.role === 'instructor' ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              <BookOpen size={24} /> <span className="text-sm">Teacher</span>
-            </button>
+          {/* Role Selection Buttons */}
+          <div className="grid grid-cols-3 gap-2 pt-2">
+            {[
+              { id: 'student', icon: GraduationCap, label: 'Student' },
+              { id: 'parent', icon: Users, label: 'Parent' },
+              { id: 'teacher', icon: BookOpen, label: 'Teacher' }
+            ].map((r) => (
+              <button
+                key={r.id}
+                type="button" onClick={() => setFormData({ ...formData, role: r.id })}
+                className={`p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition ${
+                  formData.role === r.id ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                <r.icon size={20} /> <span className="text-xs">{r.label}</span>
+              </button>
+            ))}
           </div>
 
           <button 
             type="submit" disabled={loading}
-            className="w-full bg-primary text-black py-3 rounded-xl font-bold text-lg hover:bg-black transition hover:text-white shadow-lg disabled:opacity-70 flex justify-center items-center"
+            className="w-full bg-primary text-black py-3 rounded-xl font-bold text-lg hover:bg-black hover:text-white  transition shadow-lg disabled:opacity-70 flex justify-center items-center"
           >
             {loading ? "Creating Account..." : "Sign Up"}
           </button>

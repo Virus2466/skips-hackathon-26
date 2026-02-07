@@ -15,7 +15,7 @@ const Home = () => {
                         Browse Courses
                     </Link>
                     <Link to="/register" className='px-8 py-3 bg-white text-primary border-2 border-primary text-lg rounded-xl hover:bg-gray-50 transition'>
-                        Join as Instructor
+                        Join as Teacher
                     </Link>
                 </div>
             </div> 

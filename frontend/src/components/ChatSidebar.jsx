@@ -1,7 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, Send, Bot, User, Sparkles } from 'lucide-react';
+import { useState, useRef, useEffect, useContext } from 'react';
+import { X, Send, Bot, Sparkles } from 'lucide-react';
+import api from '../api/axios'; // Import your Axios instance
+import AuthContext from '../context/AuthContext'; // To get user token
 
 const ChatSidebar = ({ isOpen, onClose }) => {
+  const { user } = useContext(AuthContext);
   const [messages, setMessages] = useState([
     { id: 1, text: "Hi! I'm your AI Mentor. I noticed you struggled with Thermodynamics. Want to review it?", sender: 'ai' }
   ]);
@@ -9,7 +12,6 @@ const ChatSidebar = ({ isOpen, onClose }) => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -24,27 +26,38 @@ const ChatSidebar = ({ isOpen, onClose }) => {
     setInput('');
     setIsTyping(true);
 
-    // 2. Simulate AI Thinking (Mock Response)
-    setTimeout(() => {
-      const aiResponse = getMockAIResponse(input);
-      setMessages(prev => [...prev, { id: Date.now() + 1, text: aiResponse, sender: 'ai' }]);
-      setIsTyping(false);
-    }, 1500);
-  };
+    try {
+      // 2. Call Real Backend API
+      const { data } = await api.post('/dashboard/chat', {
+        message: input,
+        
+        // FIX: Filter out the very first "AI Greeting" message
+        // We only want history that starts after the user has said something
+        history: messages
+          .filter(m => m.id !== 1) // Remove the default greeting (id: 1)
+          .map(m => ({
+            role: m.sender === 'user' ? 'user' : 'model',
+            parts: [{ text: m.text }]
+          }))
+          .slice(-5) // Keep last 5 messages for context
+      });
 
-  // Simple Mock Logic (Replace with Gemini API later)
-  const getMockAIResponse = (question) => {
-    const q = question.toLowerCase();
-    if (q.includes('weak') || q.includes('poor')) return "Based on your last quiz, you are weak in **Thermodynamics** and **Calculus**. I suggest reviewing Chapter 4.";
-    if (q.includes('ready') || q.includes('exam')) return "Your readiness score is **78%**. If you take 2 more mock tests, you can reach 85%!";
-    if (q.includes('plan') || q.includes('schedule')) return "Here is a plan: \n1. Morning: Revision of Organic Chemistry.\n2. Afternoon: 10 Physics numericals.\n3. Evening: Mock Test.";
-    return "That's a great question! Let's break it down. What specific concept confuses you?";
+      // 3. Add AI Response
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: data.reply, sender: 'ai' }]);
+    } catch (error) {
+      console.error("Chat Error:", error);
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: "My brain is offline 🧠. Check backend console.", sender: 'ai' }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
+    
     <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="fixed inset-0 z-50 flex justify-end">
       {/* Backdrop (Darken background) */}
       <div className="absolute inset-0 bg-opacity-30 backdrop-blur-sm" onClick={onClose}></div>
 
@@ -52,7 +65,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
       <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in">
         
         {/* Header */}
-        <div className="p-4 bg-primary text-white flex justify-between items-center shadow-md">
+        <div className="p-4 bg-primary text-black flex justify-between items-center shadow-md">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-white/20 rounded-lg">
                <Bot size={20} className="text-white" />
@@ -75,7 +88,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${
                 msg.sender === 'user' 
-                  ? 'bg-primary text-white rounded-tr-none' 
+                  ? 'bg-primary text-black rounded-tr-none' 
                   : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
               }`}>
                 {msg.text}
@@ -119,7 +132,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
           />
           <button 
             type="submit" 
-            className="p-3 bg-primary text-white rounded-xl hover:bg-indigo-700 transition shadow-lg disabled:opacity-50"
+            className="p-3 bg-primary text-black rounded-xl hover:bg-black hover:text-white transition shadow-lg disabled:opacity-50"
             disabled={!input.trim()}
           >
             <Send size={18} />
@@ -127,6 +140,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
         </form>
 
       </div>
+    </div>
     </div>
   );
 };

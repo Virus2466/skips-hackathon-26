@@ -20,6 +20,13 @@ const UserSchema = new mongoose.Schema({
     enum: ["student", "parent", "teacher"],
     default: "student",
   },
+  parentPhone: {
+    type: String,
+
+  },
+  phone: {
+    type: String,
+  },
   org: {
     type: String,
     required: false,

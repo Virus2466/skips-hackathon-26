@@ -34,10 +34,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   // --- REGISTER ---
-  const register = async (name, email, password, role, course) => {
+  const register = async (name, email, password, role, course, parentPhone, phone) => {
     try {
       const { data } = await api.post('/auth/register', { 
-        name, email, password, role, course 
+        name, email, password, role, course, parentPhone, phone 
       });
 
       localStorage.setItem('userInfo', JSON.stringify(data));

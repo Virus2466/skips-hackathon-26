@@ -73,3 +73,34 @@ export const dummyQuestions = [
     correct: 1
   }
 ];
+
+// ... existing student data ...
+
+// --- PARENT MOCK DATA ---
+export const parentData = {
+  childName: "Rahul Singh",
+  attendance: "92%",
+  overallGrade: "A",
+  upcomingExam: "JEE Mains (April)",
+  recentActivity: [
+    { id: 1, task: "Physics Mock Test", score: "65/100", status: "Completed", date: "Yesterday" },
+    { id: 2, task: "Math Homework", status: "Pending", date: "Due Tomorrow" },
+    { id: 3, task: "Chemistry Quiz", score: "88/100", status: "Completed", date: "2 days ago" }
+  ]
+};
+
+// --- TEACHER MOCK DATA ---
+export const teacherData = {
+  totalStudents: 45,
+  averageClassScore: 72,
+  assignmentsPending: 12,
+  atRiskStudents: [
+    { id: 1, name: "Amit Sharma", issue: "Low Attendance", score: 45 },
+    { id: 2, name: "Priya Verma", issue: "Failed Physics", score: 32 },
+    { id: 3, name: "Rohan Das", issue: "Incomplete Homework", score: 50 }
+  ],
+  recentSubmissions: [
+    { id: 1, student: "Ashwani Singh", assignment: "Thermodynamics", score: 85, date: "10 mins ago" },
+    { id: 2, student: "Rahul R", assignment: "Integration", score: 92, date: "1 hour ago" }
+  ]
+};
