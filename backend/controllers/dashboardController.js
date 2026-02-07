@@ -1,119 +1,126 @@
 const Test = require("../models/Test.js");
 const User = require("../models/User.js");
 
-const mongoose = require("mongoose"); // ← Add this if missing
-// GET /api/dashboard/tests - get full dashboard data for the user
-// Returns: { user, tests, stats }
-exports.getUserMockTests = async (req, res) => {
+const mongoose = require("mongoose");
+
+// GET /api/dashboard - Get comprehensive dashboard info
+// Returns: { user, overallStats, subjectAnalytics, topicAnalytics, tests }
+exports.getDashboardInfo = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { status, subject } = req.query;
 
-    // Build filter for tests
-    const filter = { user: userId };
-    if (status) filter.status = status;
-    if (subject) filter.subject = subject;
-
-    const tests = await Test.find(filter).sort({ takenAt: -1 }).lean();
-
-    // Fetch basic user profile to show on dashboard
+    // 1. Fetch user profile
     const user = await User.findById(userId)
       .select("name email role phone parentPhone course createdAt")
       .lean();
 
-    // Prepare default stats
-    if (!tests || tests.length === 0) {
-      const stats = {
-        totalTests: 0,
-        averagePercent: 0,
-        bestPercent: 0,
-        lastTakenAt: null,
-      };
-      return res.json({ user, tests: [], stats });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Fast Stats
-    const totalTests = tests.length;
-    const percentages = tests.map((t) => (t.total ? (t.score / t.total) * 100 : 0));
+    // 2. Fetch all tests for this user
+    const tests = await Test.find({ studentId: userId }).sort({ createdAt: -1 }).lean();
 
-    const stats = {
-      totalTests,
-      averagePercent: Math.round(percentages.reduce((a, b) => a + b, 0) / totalTests),
-      bestPercent: Math.round(Math.max(...percentages)),
-      lastTakenAt: tests[0].takenAt,
-    };
-
-    return res.json({ user, tests, stats });
-  } catch (error) {
-    return res.status(500).json({ message: "Server Error" });
-  }
-};
-
-// GET /api/dashboard/tests/:testId
-exports.getSingleMockTest = async (req, res) => {
-  try {
-    // One-liner: Find by ID AND User to ensure they don't see other people's data
-    const test = await Test.findOne({
-      _id: new mongoose.Types.ObjectId(req.params.testId), // Convert to ObjectId
-      user: req.user.id,
-    });
-
-    if (!test) return res.status(404).json({ message: "Test not found" });
-
-    const percentage = test.total
-      ? Math.round((test.score / test.total) * 100)
-      : 0;
-    return res.json({ ...test, percentage });
-  } catch (error) {
-    return res.status(500).json({ message: "Server Error" });
-  }
-};
-
-// POST /api/dashboard/tests - create a new mock test
-exports.createMockTest = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { title, subject, score, total, answers, durationSeconds } = req.body;
-
-    // Validate required fields
-    if (!title || score === undefined || total === undefined) {
-      return res.status(400).json({
-        message: "title, score, and total are required",
+    // If no tests, return empty dashboard
+    if (!tests || tests.length === 0) {
+      return res.json({
+        user,
+        overallStats: {
+          totalTests: 0,
+          averagePercentage: 0,
+          bestScore: 0,
+          totalQuestionsAnswered: 0,
+        },
+        subjectAnalytics: [],
+        topicAnalytics: [],
+        tests: [],
       });
     }
 
-    // Create new mock test
-    const newTest = await Test.create({
-      user: userId,
-      title,
-      subject: subject || "General",
-      score: Math.min(score, total), // Ensure score doesn't exceed total
-      total,
-      answers: answers || [],
-      durationSeconds: durationSeconds || 0,
-      status: "completed",
-      takenAt: new Date(),
+    // 3. Calculate overall stats
+    const totalTests = tests.length;
+    const scores = tests.map((t) => t.score || 0);
+    const totalQuestionsAnswered = tests.reduce(
+      (sum, t) => sum + (t.questions ? t.questions.length : 0),
+      0
+    );
+
+    const averagePercentage = Math.round(scores.reduce((a, b) => a + b, 0) / totalTests);
+    const bestScore = Math.max(...scores);
+
+    const overallStats = {
+      totalTests,
+      averagePercentage,
+      bestScore,
+      totalQuestionsAnswered,
+    };
+
+    // 4. Calculate subject analytics
+    const subjectMap = {};
+    tests.forEach((test) => {
+      if (!subjectMap[test.subject]) {
+        subjectMap[test.subject] = {
+          subject: test.subject,
+          totalTests: 0,
+          totalScore: 0,
+          averageScore: 0,
+          maxScore: 0,
+          questionsCount: 0,
+          correctCount: 0,
+        };
+      }
+      const correct = test.questions ? test.questions.filter((q) => q.isCorrect).length : 0;
+      subjectMap[test.subject].totalTests += 1;
+      subjectMap[test.subject].totalScore += test.score || 0;
+      subjectMap[test.subject].maxScore = Math.max(subjectMap[test.subject].maxScore, test.score || 0);
+      subjectMap[test.subject].questionsCount += test.questions ? test.questions.length : 0;
+      subjectMap[test.subject].correctCount += correct;
     });
 
-    // Calculate percentage
-    const percentage = newTest.total
-      ? Math.round((newTest.score / newTest.total) * 100)
-      : 0;
+    const subjectAnalytics = Object.values(subjectMap).map((item) => ({
+      ...item,
+      averageScore: Math.round(item.totalScore / item.totalTests),
+      correctPercentage: item.questionsCount
+        ? Math.round((item.correctCount / item.questionsCount) * 100)
+        : 0,
+    }));
 
-    return res.status(201).json({
-      message: "Mock test created successfully",
-      test: {
-        _id: newTest._id,
-        title: newTest.title,
-        subject: newTest.subject,
-        score: newTest.score,
-        total: newTest.total,
-        percentage,
-        durationSeconds: newTest.durationSeconds,
-        takenAt: newTest.takenAt,
-      },
+    // 5. Calculate topic/question analytics
+    const topicMap = {};
+    tests.forEach((test) => {
+      if (test.questions) {
+        test.questions.forEach((q) => {
+          const topicKey = `${test.subject} - Q${test.questions.indexOf(q) + 1}`;
+          if (!topicMap[topicKey]) {
+            topicMap[topicKey] = {
+              topic: topicKey,
+              subject: test.subject,
+              totalAttempts: 0,
+              correctAttempts: 0,
+              accuracy: 0,
+            };
+          }
+          topicMap[topicKey].totalAttempts += 1;
+          if (q.isCorrect) topicMap[topicKey].correctAttempts += 1;
+        });
+      }
+    });
+
+    const topicAnalytics = Object.values(topicMap)
+      .map((item) => ({
+        ...item,
+        accuracy: Math.round((item.correctAttempts / item.totalAttempts) * 100),
+      }))
+      .sort((a, b) => a.accuracy - b.accuracy); // Show weakest topics first
+
+    return res.json({
+      user,
+      overallStats,
+      subjectAnalytics,
+      topicAnalytics,
+      tests,
     });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };

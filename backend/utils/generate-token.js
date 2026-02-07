@@ -1,25 +1,17 @@
 const jwt = require('jsonwebtoken');
-const { JWT_ACCESS_TOKEN_SECRET, JWT_REFRESH_TOKEN_SECRET } = require('../config/global.js');
+const { JWT_REFRESH_TOKEN_SECRET } = require('../config/global.js');
+
+const REFRESH_SECRET =
+  JWT_REFRESH_TOKEN_SECRET ||
+  process.env.JWT_REFRESH_TOKEN_SECRET ||
+  "dev_refresh_secret_please_change";
 
 function generateToken(userId, extraPayload = {}) {
   return jwt.sign(
     Object.assign({ id: userId }, extraPayload),
-    JWT_ACCESS_TOKEN_SECRET,
-    { expiresIn: '1h' },
-  );
-}
-
-function refreshTokenGenerator(savedUser) {
-  return jwt.sign(
-    {
-      id: savedUser._id,
-      email: savedUser.email,
-    },
-    JWT_REFRESH_TOKEN_SECRET,
+    REFRESH_SECRET,
     { expiresIn: '7d' },
   );
 }
-
-generateToken.refreshTokenGenerator = refreshTokenGenerator;
 
 module.exports = generateToken;

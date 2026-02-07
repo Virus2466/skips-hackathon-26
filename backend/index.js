@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const recommendationRoutes = require("./routes/recommendationRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const AIController = require("./controllers/ollama.controller");
 require("dotenv").config();
@@ -17,6 +18,7 @@ app.use(express.json());
 // 1. Auth & Dashboard Routes
 app.use("/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 // 2. THE AI ENGINE ENDPOINT (Handles Chat, Questions, and Analysis)
 // Your Angular app will send { mode: 'chat' } or { mode: 'performance_analysis' } here.
