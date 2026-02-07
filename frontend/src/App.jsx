@@ -1,9 +1,17 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Login from './pages/Login';       // Import this
-import Register from './pages/Register'; // Import this
-import Courses from './pages/Courses';   // Import this
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard'; // <--- Import this
+import AuthContext from './context/AuthContext'; // To check if logged in
+import { useContext } from 'react';
+import Quiz from './pages/Quiz';
+
+const PrivateRoute = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Login />; // If not logged in, go to Login
+};
 
 function App() {
   return (
@@ -11,15 +19,28 @@ function App() {
       <Navbar />
       <div className="flex-grow">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/course" element={<Courses />} />
+          
+          <Route path="/" element={<Home />} /> 
+          
+          
+          <Route 
+            path="/dashboard" 
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            } 
+          />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/quiz" element={
+            <PrivateRoute>
+              <Quiz />
+            </PrivateRoute>
+          } />
         </Routes>
       </div>
-      <footer className="bg-dark text-white p-4 text-center">
-        <p>© 2026 EduHack Platform</p>
-      </footer>
     </div>
   )
 }

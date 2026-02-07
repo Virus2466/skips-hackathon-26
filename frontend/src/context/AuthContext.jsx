@@ -1,78 +1,67 @@
-import { createContext, useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom'
+// frontend/src/context/AuthContext.jsx
+import { createContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-// 1. Creating Context
 const AuthContext = createContext();
 
-export const AuthProvider = ({children}) => {
-    const [user, setUser] = useState(null)   // Who is logged in
-    const navigate = useNavigate();
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
-// 2. Check if user is already logged in
-useEffect(() => {
+  useEffect(() => {
     const userInfo = localStorage.getItem('userInfo');
-    if(userInfo){
-        setUser(JSON.parse(userInfo)); // Restore usr from storage
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
     }
-}, []);
+  }, []);
 
-// 3. The Login Function
-const login = async(email, password) => {
-    try {
-        const res = await fetch('http://localhost:5001/api/auth/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({email, password}),
-        })
-        const data = await res.json();
+  // --- UPDATED LOGIN FUNCTION (Frontend Mode) ---
+  const login = async (email, password) => {
+    // TEMPORARY: Simulate a successful login without Backend
+    console.log("Frontend Mode: Logging in as", email);
+    
+    const mockUser = {
+      _id: "dummy_id_123",
+      name: "Student (Demo)",
+      email: email,
+      role: "student",
+      token: "demo_token_xyz"
+    };
 
-        if(res.ok){
-            localStorage.setItem('userInfo', JSON.stringify(data));
-            setUser(data);  // Tell React "we are logged in"
-            navigate('/')
-            return {success: true}
-        } else{
-            return {success: false, message: "Server error. Try again"}
-        }
-    } catch (error) {
-        console.error("Login Error:", error);
-        return {success: false, message: "Server error. Try again"};
-    }
-};
-// 4. The Register Function
-const register = async (name, email, password, role) => {
+    localStorage.setItem('userInfo', JSON.stringify(mockUser));
+    setUser(mockUser);
+    navigate('/dashboard'); // Go straight to dashboard
+    return { success: true };
+    
+    /* // REAL BACKEND CODE (Keep commented out for now)
     try {
-        const res = await fetch("http://localhost:5001/api/auth/register", {
-            method: "POST",
-            headers: {'Content-Type' : 'application/json'},
-            body: JSON.stringify({name, email, password, role}),
-        });
-        const data = await res.json();
-        if(res.ok){
-            localStorage.setItem('userInfo', JSON.stringify(data));
-            setUser(data);
-            navigate('/')
-            return {success : true};
-        } else {
-            return {success: false, message: data.message};
-        }
-    } catch (error) {
-        return {success: false, message: "Server error."};
-    }
-}
-// 4. The Logout Function
-const logout = () => {
+      const res = await fetch('http://localhost:5000/api/auth/login', { ... });
+      // ... original logic ...
+    } catch (error) { ... } 
+    */
+  };
+
+  const logout = () => {
     localStorage.removeItem('userInfo');
     setUser(null);
     navigate('/login');
-};
+  };
 
-return (
-    <AuthContext.Provider value={{user, login, register, logout}}>
-        {children}
+  // Keep register same or mock it similarly if needed
+  const register = async (name, email, password, role, course) => {
+     // Mock Register
+     const mockUser = { name, email, role, course, password, token: "demo_token" };
+     localStorage.setItem('userInfo', JSON.stringify(mockUser));
+     setUser(mockUser);
+     navigate('/dashboard');
+     return { success: true };
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, register }}>
+      {children}
     </AuthContext.Provider>
-)
-
-}
+  );
+};
 
 export default AuthContext;

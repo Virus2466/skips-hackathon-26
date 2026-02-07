@@ -5,7 +5,7 @@ const generateToken = require("../utils/generate-token.js");
 // Helper to generate Token
 
 // @desc Register new User
-// @route POST /api/auth/register
+// @route POST /auth/register
 exports.registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
