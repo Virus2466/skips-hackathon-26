@@ -194,7 +194,7 @@ const Dashboard = () => {
         </div>
 
         {/* AI Action Card */}
-        <div className="bg-linear-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
                <MessageSquare size={20} className="text-indigo-200" />
