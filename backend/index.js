@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const authMiddleware = require("./middleware/authMiddleware");
 const runOllamaChat = require("./utils/data-fetch");
 require("dotenv").config();
 
@@ -26,7 +27,7 @@ const connectDB = async () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
 
-    runOllamaChat().catch((error) => console.error(error));
+    // runOllamaChat().catch((error) => console.error(error));
   } catch (error) {
     console.error("MongoDB Connection Error: ", error);
     // Exit process if connection fails
