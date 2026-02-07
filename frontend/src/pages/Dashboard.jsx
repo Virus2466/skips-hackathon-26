@@ -48,7 +48,7 @@ const Dashboard = () => {
       <ChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       
       {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-dark">
             Hello, <span className="text-primary">{user?.name || "Student"}</span>! 👋
@@ -64,7 +64,7 @@ const Dashboard = () => {
       </div>
 
       {/* Top Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
         {/* Readiness */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="relative z-10">
@@ -80,7 +80,7 @@ const Dashboard = () => {
         </div>
 
         {/* AI Action */}
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between col-span-2">
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-center col-span-2">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -133,8 +133,8 @@ const Dashboard = () => {
 
         {/* Right: RECENT TEST HISTORY (CARD STYLE) */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-dark">Recent Tests</h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-xl font-bold text-dark ">Recent Tests</h2>
             <Link to="/history" className="text-sm text-primary font-bold hover:underline">View All</Link>
           </div>
 

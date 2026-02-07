@@ -16,14 +16,14 @@ app.use(express.json());
 
 // 1. Auth & Dashboard Routes
 app.use("/auth", authRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 
 // 2. THE AI ENGINE ENDPOINT (Handles Chat, Questions, and Analysis)
 // Your Angular app will send { mode: 'chat' } or { mode: 'performance_analysis' } here.
-app.post("/api/ai/ask", AIController.handleRequest);
+app.post("/api/ai/ask", authMiddleware, AIController.handleRequest);
 
 // 3. TEST SUBMISSION ENDPOINT (The data source for your AI Analysis)
-app.post("/api/tests/submit", async (req, res) => {
+app.post("/api/tests/submit", authMiddleware, async (req, res) => {
   try {
     const Test = require("./models/Test");
 
