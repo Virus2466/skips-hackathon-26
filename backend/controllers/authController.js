@@ -8,7 +8,7 @@ const generateToken = require("../utils/generate-token.js");
 // @route POST /auth/register
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, course  } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
@@ -25,12 +25,19 @@ exports.registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 3. Create User
-    const user = await User.create({
+    const userPayload = {
       name,
       email,
       password: hashedPassword,
       role: role || "student",
-    });
+    };
+
+    // Add course for students
+    if ((role || "student") === "student" && course) {
+      userPayload.course = course;
+    }
+
+    const user = await User.create(userPayload);
 
     if (user) {
       res.status(201).json({
@@ -38,6 +45,7 @@ exports.registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        course: user.course || null,
         token: generateToken.refreshTokenGenerator(user),
       });
     }
@@ -63,6 +71,7 @@ exports.loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        course: user.course || null,
         token: generateToken(user.id),
       });
     } else {

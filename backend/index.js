@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 require("dotenv").config();
 
@@ -12,7 +13,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json()); // allows us to parse JSON bodies
 
+// Routes
 app.use("/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 // Mongo connection
 const connectDB = async () => {
   try {

@@ -33,6 +33,10 @@ const UserSchema = new mongoose.Schema({
     ref: "User",
     required: false,
   },
+  course: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
