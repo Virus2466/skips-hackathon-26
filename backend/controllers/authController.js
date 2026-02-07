@@ -49,7 +49,7 @@ exports.registerUser = async (req, res) => {
         course: user.course || null,
         parentPhone: user.parentPhone || null,
         phone: user.phone || null,
-        token: generateToken(user),
+        token: generateToken(user.id),
       });
     }
   } catch (error) {
