@@ -103,7 +103,7 @@ const Dashboard = () => {
         </div>
 
         {/* AI Action Area */}
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-center col-span-2">
+        <div className="bg-gradient-to-br bg-black text-white p-6 rounded-2xl shadow-lg flex flex-col justify-center col-span-2">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -116,7 +116,7 @@ const Dashboard = () => {
                   : "Welcome! Take your first AI Mock Test to get personalized guidance."}
               </p>
             </div>
-            <button onClick={() => setIsChatOpen(true)} className="bg-white text-indigo-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-indigo-50 transition shadow-md whitespace-nowrap">
+            <button onClick={() => setIsChatOpen(true)} className="bg-white text-black px-4 py-2 rounded-xl font-bold text-sm hover:bg-indigo-50 transition shadow-md whitespace-nowrap">
               Chat Now
             </button>
           </div>
@@ -127,14 +127,14 @@ const Dashboard = () => {
         {/* Left: Subject Mastery & Start Quiz */}
         <div className="lg:col-span-2 space-y-6">
           {/* Start Quiz Button Card */}
-          <div className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-8 rounded-2xl shadow-lg flex items-center justify-between">
+          <div className="bg-black text-white p-8 rounded-2xl shadow-lg flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-1">Ready to Practice?</h2>
               <p className="text-purple-100">Easy difficulty • Based on {dashboardData?.user?.course || 'your course'}</p>
             </div>
             <button 
               onClick={() => navigate('/beginner-quiz')}
-              className="px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-purple-50 transition whitespace-nowrap shadow-lg"
+              className="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-purple-50 transition whitespace-nowrap shadow-lg"
             >
               Start Quiz
             </button>

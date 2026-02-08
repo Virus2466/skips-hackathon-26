@@ -64,7 +64,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
       <div className="absolute inset-0  bg-opacity-30 backdrop-blur-sm" onClick={onClose}></div>
 
       {/* Sidebar Panel */}
-      <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in">
+      <div className="relative h-screen w-full max-w-md bg-white  shadow-2xl flex flex-col animate-slide-in">
         
         {/* Header */}
         <div className="p-4 bg-primary text-black flex justify-between items-center shadow-md">
@@ -85,7 +85,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-6">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
@@ -140,7 +140,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
         </div>
 
         {/* Input Area */}
-        <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-100 flex gap-2">
+        <form onSubmit={handleSend} className="p-4 bg-white border-t border-gray-100 flex">
           <input 
             type="text" 
             value={input}

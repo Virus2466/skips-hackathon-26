@@ -93,7 +93,7 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
       messages: [{ role: "system", content: systemPrompt }],
     });
 
-    // ✅ FIXED TEXT EXTRACTION (YOUR BUG WAS HERE)
+    
     const text =
       response?.message?.content ||
       response?.content ||
@@ -108,7 +108,7 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
         .replace(/```$/, "")
         .trim();
 
-      // Extract JSON array if AI adds garbage
+      
       const match = cleaned.match(/\[[\s\S]*\]/);
       if (!match) throw new Error("No JSON array found");
 
@@ -136,8 +136,7 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
     }
   },
 
-  // Logic for Scenario 2: Analysis (The "Why")
-  // Logic for Scenario 2: Numerical Analysis
+
   async analyzePerformance(req, res, student, course) {
     // 1. Fetch all recent tests for this subject
     const history = await Test.find({ studentId: student._id, subject: course })
@@ -179,7 +178,7 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
     }
   },
 
-  // Logic for Scenario 3: Chat
+
   // Logic for Scenario 3: Chat
   async handleContextualChat(req, res, student, message, course) {
     const lastTest = await Test.findOne({
