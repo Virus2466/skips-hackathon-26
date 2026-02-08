@@ -7,6 +7,48 @@ const ollama = new Ollama({
   headers: { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` },
 });
 
+// Helper: remove or mask sensitive information from AI outputs
+function redactSensitiveInfo(text, student) {
+  if (!text || typeof text !== 'string') return text;
+
+  let out = String(text);
+
+  // Remove explicit MongoDB ObjectId-like tokens (24 hex chars)
+  out = out.replace(/\b[0-9a-fA-F]{24}\b/g, '[REDACTED]');
+
+  // Remove any explicit 'id: ...' patterns
+  out = out.replace(/id:\s*[^\s,;\n\)]*/gi, 'id: [REDACTED]');
+
+  // Mask email addresses
+  out = out.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED]');
+
+  // Mask phone numbers (simple patterns)
+  out = out.replace(/\+?\d[\d\s()-.]{6,}\d/g, '[REDACTED]');
+
+  // If student object has an _id or other known token, remove exact matches
+  try {
+    if (student && student._id) {
+      const idStr = String(student._id);
+      if (idStr && idStr.length > 3) {
+        out = out.split(idStr).join('[REDACTED]');
+      }
+    }
+  } catch (e) {}
+
+  return out;
+}
+
+// Helper: keep reply point-to-point and short — return first 1-2 sentences
+function shortenResponse(text, maxSentences = 2) {
+  if (!text || typeof text !== 'string') return text;
+  // Split by sentence endings (handles ., !, ?)
+  const parts = text.match(/[^.!?]+[.!?]?/g) || [text];
+  const taken = parts.slice(0, maxSentences).join(' ').trim();
+  // If still long, truncate to ~400 chars
+  if (taken.length > 400) return taken.slice(0, 400).trim() + '...';
+  return taken;
+}
+
 const AIController = {
   // THE TRAFFIC COP: Decides which scenario to run
   async handleRequest(req, res) {
@@ -242,15 +284,27 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
 
     if (includeContext && lastTest) {
       // Provide a brief, relevant snapshot of the student's last test when explicitly requested
-      systemPrompt += `\nStudent: ${student.name} (id: ${student._id}). Last test for ${course}: score ${lastTest.score}, takenAt ${lastTest.createdAt || lastTest.createdAt}.`;
+      // DO NOT include any persistent identifiers such as DB ids or emails.
+      const takenAt = lastTest.createdAt ? new Date(lastTest.createdAt).toDateString() : 'unknown date';
+      const displayName = student && student.name ? student.name.split(' ')[0] : 'Student';
+      systemPrompt += `\nStudent: ${displayName} (IDENTIFIER REDACTED). Last test for ${course}: score ${lastTest.score}, takenAt ${takenAt}.`;
     }
+
+    // Add strict brevity + privacy instructions to the system prompt
+    systemPrompt += `\nPRIVACY: Do not emit any persistent identifiers (IDs, emails, phone numbers). Replace them with [REDACTED] if needed.`;
+    systemPrompt += `\nBrevity: Answer in a short, point-to-point sentence or two, then add a very short 1-2 sentence summary. Keep total length minimal.`;
 
     // Forward to Ollama with system prompt and user message
     const messages = [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }];
 
     const response = await ollama.chat({ model: 'gpt-oss:120b', messages });
 
-    res.status(200).json({ success: true, message: response.message.content });
+    // Safeguard: redact sensitive tokens and shorten reply before returning to client
+    const raw = response?.message?.content || response?.content || '';
+    const redacted = redactSensitiveInfo(raw, student);
+    const short = shortenResponse(redacted, 2);
+
+    res.status(200).json({ success: true, message: short, raw: undefined });
   },
 };
 
