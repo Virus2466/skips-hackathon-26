@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   TrendingUp, Play, MessageSquare, Calendar, Users, BookOpen, 
   CheckCircle, Clock, X, BarChart2, Award, XCircle, ArrowRight, Loader2 
@@ -10,6 +10,7 @@ import api from '../api/axios';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [recentTests, setRecentTests] = useState([]);
   const [loadingTests, setLoadingTests] = useState(true);
@@ -123,8 +124,23 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Subject Mastery */}
+        {/* Left: Subject Mastery & Start Quiz */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Start Quiz Button Card */}
+          <div className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-8 rounded-2xl shadow-lg flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-1">Ready to Practice?</h2>
+              <p className="text-purple-100">Easy difficulty • Based on {dashboardData?.user?.course || 'your course'}</p>
+            </div>
+            <button 
+              onClick={() => navigate('/beginner-quiz')}
+              className="px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-purple-50 transition whitespace-nowrap shadow-lg"
+            >
+              Start Quiz
+            </button>
+          </div>
+
+          {/* Subject Mastery */}
           <h2 className="text-xl font-bold text-dark">Subject Mastery</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {dashboardData?.subjectAnalytics?.map((item) => (

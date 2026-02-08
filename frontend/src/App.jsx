@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import AuthContext from './context/AuthContext';
 import { useContext } from 'react';
 import Quiz from './pages/Quiz';
+import BeginnerQuiz from './pages/BeginnerQuiz';
 import PrivateRoute from './components/PrivateRoute';
 import TestHistory from './pages/TestHistory';
 
@@ -44,6 +45,12 @@ function App() {
           <Route path="/quiz" element={
             <PrivateRoute>
               <Quiz />
+            </PrivateRoute>
+          } />
+
+          <Route path="/beginner-quiz" element={
+            <PrivateRoute>
+              <BeginnerQuiz />
             </PrivateRoute>
           } />
         </Routes>

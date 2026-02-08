@@ -12,7 +12,7 @@ const TestSchema = new mongoose.Schema({
   },
   subject: {
     type: String,
-    required: true, // e.g., "Thermodynamics"
+    required: false, // e.g., "Thermodynamics"
   },
   questions: [
     {

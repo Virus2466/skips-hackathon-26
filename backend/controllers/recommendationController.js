@@ -27,18 +27,7 @@ const RecommendationController = {
       const recentTests = await Test.find({ studentId: userId, subject: course })
         .sort({ createdAt: -1 })
         .limit(5);
-      
-        const topicsMap = {};
-      recentTests.forEach((test) => {
-        test.questions?.forEach((q) => {
-          const topicKey = q.topic || "General";
-          if (!topicsMap[topicKey]) {
-            topicsMap[topicKey] = { topic: topicKey, correct: 0, total: 0 };
-          }
-          topicsMap[topicKey].total += 1;
-          if (q.isCorrect) topicsMap[topicKey].correct += 1;
-        });
-      });
+
       // If user is first-time (no recent tests), generate a starter mock test (beginner)
       let starterTest = null;
       if (!recentTests || recentTests.length === 0) {
@@ -49,7 +38,6 @@ const RecommendationController = {
             model: "gpt-oss:120b",
             messages: [{ role: "system", content: starterPrompt }],
           });
-
 
           const text = response?.message?.content || response?.content || (typeof response === "string" ? response : "");
           const cleaned = String(text).trim().replace(/^```json/i, "").replace(/^```/i, "").replace(/```$/, "").trim();
@@ -256,13 +244,12 @@ Return ONLY this JSON structure:
           title: `Quiz from ${recommendationId || "Custom Prompt"}`,
           subject: course,
           questions: questions.map((q) => ({
-            questionText: q.questionText || q.question || "",
-            options: q.options || [],
-            correctAnswer: q.correctAnswer || q.correct_answer || "",
+            questionText: q.questionText,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
             userAnswer: null,
             isCorrect: false,
             topic: q.topic || course,
-            explanation: q.explanation || "",
           })),
           score: 0,
           createdAt: new Date(),
