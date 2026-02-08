@@ -113,12 +113,38 @@ exports.getDashboardInfo = async (req, res) => {
       }))
       .sort((a, b) => a.accuracy - b.accuracy); // Show weakest topics first
 
+    // 6. Format tests for dashboard: include question summaries
+    const formattedTests = tests.map((test) => {
+      const questions = (test.questions || []).map((q) => {
+        const formatted = {
+          questionText: q.questionText || q.question || "",
+          options: q.options || [],
+          isCorrect: !!q.isCorrect,
+          userAnswer: q.userAnswer === undefined ? null : q.userAnswer,
+        };
+        // If the user answered incorrectly, include the correct answer as well
+        if (!q.isCorrect) {
+          formatted.correctAnswer = q.correctAnswer || q.correct_answer || null;
+        }
+        return formatted;
+      });
+
+      return {
+        _id: test._id,
+        title: test.title || test.name || "",
+        subject: test.subject,
+        score: test.score || 0,
+        createdAt: test.createdAt || test.takenAt || null,
+        questions,
+      };
+    });
+
     return res.json({
       user,
       overallStats,
       subjectAnalytics,
       topicAnalytics,
-      tests,
+      tests: formattedTests,
     });
   } catch (error) {
     return res.status(500).json({ message: "Server Error", error: error.message });

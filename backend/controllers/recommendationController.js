@@ -66,83 +66,98 @@ const RecommendationController = {
         }
       }
 
-      // Get weak topics from recent tests
-      const topicsMap = {};
-      recentTests.forEach((test) => {
-        if (test.questions) {
-          test.questions.forEach((q) => {
-            if (!q.isCorrect) {
-              const topicKey = q.topic || "General";
-              if (!topicsMap[topicKey]) {
-                topicsMap[topicKey] = { topic: topicKey, count: 0 };
+      // Check if first-time user
+      const isFirstTime = !recentTests || recentTests.length === 0;
+
+      let recommendations = [];
+
+      if (isFirstTime) {
+        // FIRST-TIME USER: Only show beginner recommendation
+        recommendations = [
+          {
+            id: "beginner_foundation",
+            title: "Beginner Practice: Foundations",
+            description: "Start with fundamental concepts to build a strong base.",
+            prompt: `Generate a quiz test with 5 beginner-level MCQs on "${course}". Focus on foundational concepts and key definitions.`,
+            difficulty: "beginner",
+            topicFocus: "Foundations",
+          },
+        ];
+      } else {
+        // RETURNING USER: Analyze weak topics and suggest improvements
+        const topicsMap = {};
+        recentTests.forEach((test) => {
+          if (test.questions) {
+            test.questions.forEach((q) => {
+              if (!q.isCorrect) {
+                const topicKey = q.topic || "General";
+                if (!topicsMap[topicKey]) {
+                  topicsMap[topicKey] = { topic: topicKey, count: 0 };
+                }
+                topicsMap[topicKey].count += 1;
               }
-              topicsMap[topicKey].count += 1;
-            }
+            });
+          }
+        });
+
+        // Sort weak topics by frequency (most struggled first)
+        const weakTopics = Object.values(topicsMap)
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3);
+
+        // Add weak-topic recommendations first
+        if (weakTopics.length > 0) {
+          weakTopics.forEach((item) => {
+            recommendations.push({
+              id: `weak_${item.topic}`,
+              title: `Strengthen: ${item.topic}`,
+              description: `You struggled with this topic in ${item.count} question(s). Let's practice!`,
+              prompt: `Generate a quiz test with 5 MCQs on "${item.topic}" from the course "${course}". Focus on beginner to intermediate difficulty to help strengthen understanding.`,
+              difficulty: "intermediate",
+              topicFocus: item.topic,
+            });
           });
         }
-      });
 
-      // Sort weak topics by frequency
-      const weakTopics = Object.values(topicsMap)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 3);
-
-      // Generate recommendations with prompts
-      const recommendations = [];
-
-      // If there are weak topics, prioritize them
-      if (weakTopics.length > 0) {
-        weakTopics.forEach((item) => {
-          recommendations.push({
-            id: `weak_${item.topic}`,
-            title: `Strengthen: ${item.topic}`,
-            description: `You struggled with this topic in ${item.count} question(s). Let's practice!`,
-            prompt: `Generate a quiz test with 5 MCQs on "${item.topic}" from the course "${course}". Focus on beginner to intermediate difficulty to help strengthen understanding.`,
+        // Add 2-3 random advanced recommendations
+        const advancedOptions = [
+          {
+            id: "intermediate_practice",
+            title: "Intermediate Practice: Applications",
+            description: "Test your ability to apply concepts in real scenarios.",
+            prompt: `Generate a quiz test with 5 intermediate-level MCQs on "${course}". Include application-based and scenario-based questions.`,
             difficulty: "intermediate",
-            topicFocus: item.topic,
-          });
-        });
+            topicFocus: "Applications",
+          },
+          {
+            id: "advanced_challenge",
+            title: "Advanced Challenge: Mastery",
+            description: "Push your limits with challenging questions.",
+            prompt: `Generate a quiz test with 5 advanced-level MCQs on "${course}". Include complex, multi-step, and analytical questions.`,
+            difficulty: "advanced",
+            topicFocus: "Advanced Topics",
+          },
+          {
+            id: "revision_practice",
+            title: "Revision: Mixed Topics",
+            description: "Review multiple topics to consolidate your learning.",
+            prompt: `Generate a quiz test with 5 MCQs covering multiple topics from "${course}". Mix beginner, intermediate, and advanced questions.`,
+            difficulty: "mixed",
+            topicFocus: "Mixed",
+          },
+        ];
+
+        // Shuffle and pick 2-3 random options
+        const shuffled = advancedOptions.sort(() => Math.random() - 0.5);
+        recommendations.push(...shuffled.slice(0, 2));
       }
-
-      // Add general practice recommendations
-      const generalRecommendations = [
-        {
-          id: "beginner_practice",
-          title: "Beginner Practice: Foundations",
-          description: "Start with fundamental concepts to build a strong base.",
-          prompt: `Generate a quiz test with 5 beginner-level MCQs on "${course}". Focus on foundational concepts and key definitions.`,
-          difficulty: "beginner",
-          topicFocus: "Foundations",
-        },
-        {
-          id: "intermediate_practice",
-          title: "Intermediate Practice: Applications",
-          description: "Test your ability to apply concepts in real scenarios.",
-          prompt: `Generate a quiz test with 5 intermediate-level MCQs on "${course}". Include application-based and scenario-based questions.`,
-          difficulty: "intermediate",
-          topicFocus: "Applications",
-        },
-        {
-          id: "advanced_practice",
-          title: "Advanced Challenge: Mastery",
-          description: "Push your limits with challenging questions.",
-          prompt: `Generate a quiz test with 5 advanced-level MCQs on "${course}". Include complex, multi-step, and analytical questions.`,
-          difficulty: "advanced",
-          topicFocus: "Advanced Topics",
-        },
-      ];
-
-      // Combine weak topics + general recommendations (avoid duplicates)
-      const allRecommendations = [
-        ...recommendations,
-        ...generalRecommendations,
-      ];
 
       return res.json({
         success: true,
         course,
-        totalRecommendations: allRecommendations.length,
-        recommendations: allRecommendations,
+        isFirstTime,
+        totalRecommendations: recommendations.length,
+        recommendations,
         starterTest,
       });
     } catch (error) {
