@@ -507,6 +507,17 @@ NO TEXT. NO MARKDOWN. JSON ONLY.
 
       res.status(200).json({ success: true, message: fallbackResponse, raw: undefined });
     }
+
+    if (includeContext && lastTest) {
+      // Provide a brief, relevant snapshot of the student's last test when explicitly requested
+      systemPrompt += `\nStudent: ${student.name} (id: ${student._id}). Last test for ${course}: score ${lastTest.score}, takenAt ${lastTest.createdAt || lastTest.createdAt}.`;
+    }
+
+    // Forward to Ollama with system prompt and user message
+ 
+    const response = await ollama.chat({ model: 'gpt-oss:120b', messages });
+
+    res.status(200).json({ success: true, message: response.message.content });
   },
 };
 
