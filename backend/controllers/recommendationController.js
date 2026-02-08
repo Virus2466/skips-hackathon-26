@@ -232,24 +232,65 @@ Return ONLY this JSON structure:
         const match = cleaned.match(/\[[\s\S]*\]/);
         if (!match) throw new Error("No JSON array found in response");
 
-        const questions = JSON.parse(match[0]);
+        let questions = JSON.parse(match[0]);
 
         if (!Array.isArray(questions)) {
           throw new Error("Response is not an array");
         }
+
+        // Helper: shuffle options and normalize correctAnswer as the option string
+        const shuffle = (arr) => {
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+        };
+
+        const normalizedQuestions = questions.map((q) => {
+          const qText = q.questionText || q.question || "";
+          const opts = Array.isArray(q.options) ? [...q.options] : [];
+
+          // Determine correct answer string (handle index or text)
+          let correct = q.correctAnswer || q.correct_answer || null;
+          if (correct !== null && typeof correct === 'number') {
+            correct = opts[correct] || null;
+          } else if (typeof correct === 'string' && /^[0-9]+$/.test(correct)) {
+            // string index
+            const idx = parseInt(correct, 10);
+            correct = opts[idx] || correct;
+          }
+
+          // Shuffle options to randomize correct position
+          if (opts.length > 0) shuffle(opts);
+
+          // If correct is missing, try to infer by matching text in options
+          if (!correct && opts.length > 0) {
+            // pick first option as fallback
+            correct = opts[0];
+          }
+
+          return {
+            questionText: qText,
+            options: opts,
+            correctAnswer: correct || "",
+            explanation: q.explanation || "",
+            topic: q.topic || course,
+          };
+        });
 
         // Create test document
         const newTest = await Test.create({
           studentId: userId,
           title: `Quiz from ${recommendationId || "Custom Prompt"}`,
           subject: course,
-          questions: questions.map((q) => ({
+          questions: normalizedQuestions.map((q) => ({
             questionText: q.questionText,
             options: q.options,
             correctAnswer: q.correctAnswer,
             userAnswer: null,
             isCorrect: false,
-            topic: q.topic || course,
+            topic: q.topic,
+            explanation: q.explanation,
           })),
           score: 0,
           createdAt: new Date(),
