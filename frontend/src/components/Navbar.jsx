@@ -20,6 +20,8 @@ const Navbar = () => {
 
         {/* Links */}
         <div className="flex gap-6 items-center">
+          {/* <Link to="/" className="text-gray-600 hover:text-primary transition font-medium">Home</Link> */}
+          
           {/* Show 'Dashboard' only if logged in */}
           {user && (
             <Link

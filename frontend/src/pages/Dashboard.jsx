@@ -1,24 +1,14 @@
-import { useContext, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  TrendingUp,
-  Play,
-  MessageSquare,
-  Calendar,
-  Users,
-  BookOpen,
-  CheckCircle,
-  Clock,
-  X,
-  BarChart2,
-  Award,
-  XCircle,
-  ArrowRight,
-  Loader2,
-} from "lucide-react";
-import AuthContext from "../context/AuthContext";
-import ChatSidebar from "../components/ChatSidebar";
-import api from "../api/axios";
+import { useContext, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  TrendingUp, Play, MessageSquare, Calendar, Users, BookOpen, 
+  CheckCircle, Clock, X, BarChart2, Award, XCircle, ArrowRight, Loader2 
+} from 'lucide-react';
+import AuthContext from '../context/AuthContext';
+import ChatSidebar from '../components/ChatSidebar';
+import ParentDashboard from './ParentDashboard';
+import TeacherDashboard from './TeacherDashboard';
+import api from '../api/axios';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -72,10 +62,8 @@ const Dashboard = () => {
   }
 
   // --- PARENT & TEACHER VIEWS ---
-  if (user?.role === "parent")
-    return <div className="p-6">Parent Dashboard Placeholder</div>;
-  if (user?.role === "teacher")
-    return <div className="p-6">Teacher Dashboard Placeholder</div>;
+  if (user?.role === 'parent') return <ParentDashboard />;
+  if (user?.role === 'teacher') return <TeacherDashboard />;
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8 relative">
@@ -281,6 +269,93 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* --- AI STUDENT ANALYSIS CARD --- */}
+      <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-8 rounded-2xl shadow-sm border border-purple-200">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-dark flex items-center gap-2">
+              🤖 AI Student Analysis
+            </h2>
+            <p className="text-gray-600 mt-1">Personalized insights based on your test performance</p>
+          </div>
+        </div>
+
+        {dashboardData?.topicAnalytics?.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Weak Areas Section */}
+            <div className="bg-white p-6 rounded-xl border border-red-100">
+              <h3 className="text-lg font-bold text-dark mb-4 flex items-center gap-2">
+                <span className="text-red-500">⚠️</span> Areas to Improve
+              </h3>
+              <div className="space-y-3">
+                {dashboardData.topicAnalytics.slice(0, 3).map((topic, idx) => (
+                  <div key={idx} className="p-4 bg-red-50 rounded-lg border border-red-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-bold text-gray-800 text-sm">{topic.topic}</p>
+                      <span className="text-xs font-bold px-2 py-1 bg-red-100 text-red-700 rounded-full">
+                        {topic.accuracy}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-red-500 h-full"
+                        style={{ width: `${topic.accuracy}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      {topic.totalAttempts} attempts • {topic.correctAttempts} correct
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Recommendations Section */}
+            <div className="bg-white p-6 rounded-xl border border-blue-100">
+              <h3 className="text-lg font-bold text-dark mb-4 flex items-center gap-2">
+                <span className="text-blue-500">💡</span> AI Recommendations
+              </h3>
+              <div className="space-y-3">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-sm font-semibold text-dark mb-2">📚 Focus on Weak Topics</p>
+                  <p className="text-xs text-gray-700">
+                    Your weakest area is <span className="font-bold text-red-600">
+                      {dashboardData.topicAnalytics[0]?.topic}
+                    </span>. Consider taking targeted practice tests on this topic.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                  <p className="text-sm font-semibold text-dark mb-2">⭐ Strengths to Build On</p>
+                  <p className="text-xs text-gray-700">
+                    You're doing great in <span className="font-bold text-green-600">
+                      {dashboardData.topicAnalytics[dashboardData.topicAnalytics.length - 1]?.topic}
+                    </span>! Keep practicing to master this area.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                  <p className="text-sm font-semibold text-dark mb-2">🎯 Next Steps</p>
+                  <p className="text-xs text-gray-700">
+                    Complete <span className="font-bold">5 more tests</span> to unlock advanced insights and personalized learning pathways.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white p-8 rounded-xl border border-purple-100 text-center">
+            <p className="text-gray-600 mb-3">Take some tests to get personalized AI analysis and recommendations!</p>
+            <button
+              onClick={() => navigate("/quiz")}
+              className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition"
+            >
+              Start Your First Test
+            </button>
+          </div>
+        )}
       </div>
 
       {/* --- ANALYSIS SIDEBAR (OVERLAY) --- */}
