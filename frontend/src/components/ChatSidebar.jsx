@@ -67,7 +67,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
       <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in">
         
         {/* Header */}
-        <div className="p-4 bg-primary text-white flex justify-between items-center shadow-md">
+        <div className="p-4 bg-primary text-black flex justify-between items-center shadow-md">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-white/20 rounded-lg">
                <Bot size={20} className="text-white" />
@@ -132,7 +132,7 @@ const ChatSidebar = ({ isOpen, onClose }) => {
             <button 
               key={i} 
               onClick={() => setInput(txt)}
-              className="whitespace-nowrap px-3 py-1 bg-white border border-indigo-100 text-primary text-xs rounded-full hover:bg-indigo-50 transition flex items-center gap-1 shadow-sm"
+              className="whitespace-nowrap px-3 py-1 bg-white border border-indigo-100 text-black text-xs rounded-full hover:bg-indigo-50 transition flex items-center gap-1 shadow-sm"
             >
               <Sparkles size={12} /> {txt}
             </button>

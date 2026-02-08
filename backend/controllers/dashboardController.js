@@ -45,7 +45,14 @@ exports.getDashboardInfo = async (req, res) => {
       0
     );
 
-    const averagePercentage = Math.round(scores.reduce((a, b) => a + b, 0) / totalTests);
+    const totalScored = tests.reduce((sum, t) => sum + (t.score || 0), 0);
+    const totalPossible = tests.reduce((sum, t) => sum + (t.total || 5), 0); 
+
+    const averagePercentage = totalPossible > 0 
+  ? Math.round((totalScored / totalPossible) * 100) 
+  : 0;
+
+    // const averagePercentage = Math.round(scores.reduce((a, b) => a + b, 0) / totalTests);
     const bestScore = Math.max(...scores);
 
     const overallStats = {
@@ -136,6 +143,7 @@ exports.getDashboardInfo = async (req, res) => {
         title: test.title || test.name || "",
         subject: test.subject,
         score: test.score || 0,
+        total: test.total || 0,
         createdAt: test.createdAt || test.takenAt || null,
         questions,
       };

@@ -29,6 +29,10 @@ const TestSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  total: {
+    type: Number,
+    default: 5
+  },
   createdAt: {
     type: Date,
     default: Date.now,
