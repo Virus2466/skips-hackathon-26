@@ -21,6 +21,8 @@ const TestSchema = new mongoose.Schema({
       correctAnswer: String,
       userAnswer: String,
       isCorrect: Boolean,
+      topic: String,
+      explanation: String,
     },
   ],
   score: {

@@ -121,10 +121,12 @@ exports.getDashboardInfo = async (req, res) => {
           options: q.options || [],
           isCorrect: !!q.isCorrect,
           userAnswer: q.userAnswer === undefined ? null : q.userAnswer,
+          topic: q.topic || test.subject,
         };
-        // If the user answered incorrectly, include the correct answer as well
+        // If the user answered incorrectly, include the correct answer and explanation
         if (!q.isCorrect) {
           formatted.correctAnswer = q.correctAnswer || q.correct_answer || null;
+          formatted.explanation = q.explanation || "No explanation available";
         }
         return formatted;
       });
