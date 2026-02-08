@@ -21,7 +21,7 @@ api.interceptors.request.use(
         if (parsedUser && parsedUser.token) {
           config.headers.Authorization = `Bearer ${parsedUser.token}`;
 
-          console.log("✅ Interceptor Working! Attaching Token:", parsedUser.token);
+          // console.log("✅ Interceptor Working! Attaching Token:", parsedUser.token);
         }
       } catch (error) {
         console.error("Error parsing user info:", error);
